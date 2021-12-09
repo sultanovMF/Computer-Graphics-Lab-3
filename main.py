@@ -29,7 +29,7 @@ def scale(radius_vector, scale_coefficient):
                                       [0, 0, 1]])
     return np.matmul(transformation_matrix, radius_vector)
 
-def shear(radius_vector, relate_to_vector):
+def shear(radius_vector, relate_to_vector, angle_sheer):
     angle_rotate = np.arctan(float(relate_to_vector[1][0]) / relate_to_vector[0][0]) + np.pi
     rotate_matrix_plus = np.array([[np.cos(angle_rotate), -np.sin(angle_rotate), 0],
                                       [np.sin(angle_rotate), np.cos(angle_rotate), 0],
@@ -39,10 +39,8 @@ def shear(radius_vector, relate_to_vector):
     rotate_matrix_minus = np.array([[np.cos(angle_rotate), -np.sin(angle_rotate), 0],
                                       [np.sin(angle_rotate), np.cos(angle_rotate), 0],
                                       [0, 0, 1]])
-    
-    tg_angle_sheer = float(radius_vector[1][0]) / radius_vector[0][0]
 
-    shear_matrix = np.array([[1, tg_angle_sheer, 0],
+    shear_matrix = np.array([[1, np.ctg(angle_sheer), 0],
                                       [0, 1, 0],
                                       [0, 0, 1]])                      
     transformation_matrix = np.matmul(rotate_matrix_minus, shear_matrix)
@@ -51,10 +49,10 @@ def shear(radius_vector, relate_to_vector):
     return np.matmul(transformation_matrix, radius_vector)
 
 
-def shear_polygon(list_of_polygon_coordinates, relate_to_vactor):
+def shear_polygon(list_of_polygon_coordinates, relate_to_vactor, tg_angle_sheer):
     result  = []
     for point in list_of_polygon_coordinates:
-        result.append(shear(point, relate_to_vactor))
+        result.append(shear(point, relate_to_vactor, tg_angle_sheer))
     return result
 
 
@@ -139,7 +137,7 @@ if __name__ == "__main__":
     m = 7
     dx = 5
     scale_step = 0.05
-    angle_step = np.pi / 72
+    angle_step = np.pi / 36
 
     relate_to_vector = np.array([[1], [-1], [1]])
     Tx = 0
@@ -195,7 +193,7 @@ if __name__ == "__main__":
                     mode = 4
         surface.fill((0,0,0))
 
-         # Рисование системы координат
+        # Рисование системы координат
         pygame.draw.line(surface, (255, 255, 255),
                         (width // 2, 0), (width // 2, height))
         pygame.draw.line(surface, (255, 255, 255),
@@ -232,12 +230,10 @@ if __name__ == "__main__":
             angle += sign * angle_step
             if (angle < - np.pi / 4 or angle > 0):
                 sign *= -1
-            
-            relate_to_vector = rotate(relate_to_vector, angle)
-            print(angle, relate_to_vector.flatten())
-            result_polygon = shear_polygon(list_of_polygon_coordinates, relate_to_vector)
+        
+            result_polygon = shear_polygon(list_of_polygon_coordinates, relate_to_vector, angle)
 
         pygame.time.wait(100)
         draw_polygon(surface, (255, 255, 255), result_polygon)
-      #  draw_polygon(surface, (0, 120, 0), list_of_polygon_coordinates)
+
         pygame.display.update()
